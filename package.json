@@ -9,8 +9,10 @@
   "author": "poonkje112",
   "license": "ISC",
   "dependencies": {
-    "@discordjs/opus": "^0.1.0",
+    "@discordjs/opus": "^0.3.2",
     "discord.js": "^12.2.0",
+    "node-opus": "^0.3.3",
+    "nodemon": "^2.0.4",
     "youtube-info": "^1.3.2"
   }
 }

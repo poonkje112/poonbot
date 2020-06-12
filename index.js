@@ -110,7 +110,7 @@ function ProcessSong(message, url) {
 
         ytInfo(videoId, function(err, videoInfo) { // Simply getting some info from the video so we can send an confirmation including the video data
             let queueMessage = new Discord.MessageEmbed()
-                .addField("🔼 Music Queue", `${message.author} Added [${videoInfo.title}](${videoInfo.url}) to the queue`)
+                .addField("🔼 Music Queue", `${message.author} Added [${videoInfo != undefined ? videoInfo.title : "TITLE_ERROR"}](${videoInfo != undefined ? videoInfo.url : url}) to the queue`)
                 .setColor("#4cd137")
                 .setFooter(`Position in queue: ${server.queue.length}`, "");
 
@@ -213,5 +213,5 @@ function clear(guildId, voice) {
 function getId(url) {
     var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
     var match = url.match(regExp);
-    return (match&&match[7].length==11)? match[7] : false;
+    return (match&&match[7].length==11)? match[7] : undefined;
 }
