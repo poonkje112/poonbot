@@ -17,6 +17,7 @@ bot.login(botInfo["token"]);
 
 bot.on("ready", function() {
     console.log("Bot Loaded!");
+    bot.user.setPresence({activity: {name: "In Testing Mode"}});
 });
 
 bot.on("message", function(message) {
