@@ -1,7 +1,7 @@
 // DOCS https://discord.js.org/#/docs/main/stable/general/welcome
 
 const Discord = require('discord.js');
-const ytInfo = require('youtube-info');
+const req = require("request");
 const fs = require('fs');
 
 const botInfo = require("./botInfo.json"); // Contains the token
@@ -106,12 +106,21 @@ function ProcessSong(message, url) {
         
         server.queue.push({
             id: videoId,
-            author: message.author
+            author: message.author,
+            uri: url
         }); // Add this id to the queue
 
-        ytInfo(videoId, function(err, videoInfo) { // Simply getting some info from the video so we can send an confirmation including the video data
+        var options = {
+            uri: `https://www.youtube.com/oembed?url=${url}&format=json`,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0'
+              }
+          };
+
+       req(options, function(error, response, body) { // Simply getting some info from the video so we can send an confirmation including the video data
+            let data = JSON.parse(body);
             let queueMessage = new Discord.MessageEmbed()
-                .addField("🔼 Music Queue", `${message.author} Added [${videoInfo != undefined ? videoInfo.title : "TITLE_ERROR"}](${videoInfo != undefined ? videoInfo.url : url}) to the queue`)
+                .addField("🔼 Music Queue", `${message.author} Added [${data != undefined ? data.title : "TITLE_ERROR"}](${url}) to the queue`)
                 .setColor("#4cd137")
                 .setFooter(`Position in queue: ${server.queue.length}`, "");
 
@@ -127,6 +136,8 @@ function ProcessSong(message, url) {
         .setColor("#e84118");
         message.channel.send(voiceError);
     }
+
+    message.delete();
 }
 
 function PlaySong(guildId, message) {
@@ -135,9 +146,17 @@ function PlaySong(guildId, message) {
     if(server == undefined || server.queue == undefined) return; // Checking if there is a queue available
     
     if(server.queue[0] == undefined) return; // Checking if something exists in the queue
-    ytInfo(server.queue[0].id, function(err, videoInfo){      
+
+    var options = {
+        uri: `https://www.youtube.com/oembed?url=${server.queue[0].uri}&format=json`,
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0'
+          }
+      };
+
+    req(options, function(err, resp, body) {      
         
-        if(server.queue[0] == undefined) return; // Checking if something exists in the queue
+        let data = JSON.parse(body);
 
         message.member.voice.channel.join().then(function(connection) {
             let broadcast;
@@ -150,7 +169,7 @@ function PlaySong(guildId, message) {
             }
 
             let nowMessage = new Discord.MessageEmbed()
-            .addField("▶️ Music Queue", `Now playing: [${videoInfo.title}](${videoInfo.url}) requested by ${server.queue[0].author}`)
+            .addField("▶️ Music Queue", `Now playing: ${data != undefined ? `[${data.title}](${server.queue[0].uri})` : "TITLE_ERROR"} requested by ${server.queue[0].author}`)
             .setColor("#00a8ff")
             .setFooter(`Songs in queue: ${server.queue.length-1}`, "");
 
@@ -161,7 +180,7 @@ function PlaySong(guildId, message) {
             });
             
             server.isPlaying = true;
-            broadcast.play(`http://api.poonkje.com/poonbot/ymp3/${server.queue[0].id}`);
+            broadcast.play(`http://api.poonkje.com/poonbot/ymp3/${poonApi.apiKey}/${server.queue[0].id}`);
             connection.play(broadcast);
 
             server.queue.shift();
